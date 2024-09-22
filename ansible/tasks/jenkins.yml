@@ -1,23 +1,41 @@
 ---
-- name: add jenkins repo
-  yum_repository:
-    name: jenkins
-    baseurl: http://pkg.jenkins.io/redhat-stable
-    description: Jenkins official repo for Centos7
-    gpgkey: https://jenkins-ci.org/redhat/jenkins-ci.org.key
-    enabled: yes
+- name: Installer des dépendances nécessaires (si pas déjà installées)
+  apt:
+    name: "{{ item }}"
     state: present
+    update_cache: yes
+  loop:
+    - apt-transport-https
+    - software-properties-common
+    - gnupg
 
-- name: install Jenkins
-  yum:
-    name: jenkins
+- name: Télécharger la clé GPG du référentiel Jenkins et la placer dans /usr/share/keyrings/
+  get_url:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    dest: /usr/share/keyrings/jenkins-keyring.asc
+    mode: '0644'
+
+- name: Ajouter le référentiel Jenkins à APT sources
+  copy:
+    dest: /etc/apt/sources.list.d/jenkins.list
+    content: |
+      deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+    mode: '0644'
+
+- name: Mettre à jour la liste des paquets APT
+  apt:
     update_cache: yes
 
-- name: start jenkins
+- name: Installer Jenkins
+  apt:
+    name: jenkins
+    state: present
+
+- name: Démarrer et activer Jenkins
   systemd:
     name: jenkins
     state: started
-    enabled: yes
+    enabled: true
 
 - name: wait for jenkins to start
   wait_for:

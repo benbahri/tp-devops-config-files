@@ -1,16 +1,49 @@
 ---
-- name: add artifactory repo
-  get_url:
-    url: https://releases.jfrog.io/artifactory/artifactory-rpms/artifactory-rpms.repo
-    dest: /etc/yum.repos.d/jfrog-artifactory-rpms.repo
-
-- name: install artifactory
-  yum:
+- name: Installer des dépendances nécessaires (si pas déjà installées)
+  apt:
+    name: "{{ item }}"
+    state: present
     update_cache: yes
-    name: jfrog-artifactory-oss
+  loop:
+    - apt-transport-https
+    - software-properties-common
+    - gnupg
 
-- name: start artifactory service
+- name: Télécharger la clé GPG de JFrog et la placer dans /usr/share/keyrings/
+  get_url:
+    url: https://releases.jfrog.io/artifactory/api/gpg/key/public
+    dest: /usr/share/keyrings/jfrog-artifactory.gpg
+    mode: '0644'
+
+- name: Ajouter le dépôt Artifactory avec les anciennes versions
+  copy:
+    dest: /etc/apt/sources.list.d/jfrog-artifactory.list
+    content: |
+      deb https://releases.jfrog.io/artifactory/artifactory-debs stable main
+    mode: '0644'
+
+- name: Mettre à jour la liste des paquets APT
+  apt:
+    update_cache: yes
+
+- name: Installer une version spécifique d'Artifactory OSS
+  apt:
+    name: jfrog-artifactory-oss="{{ artifactory_version }}"
+    state: present
+
+- name: Vérifier la configuration par défaut d'Artifactory
+  stat:
+    path: /var/opt/jfrog/artifactory/etc/db.properties
+  register: artifactory_db_properties
+
+- name: Supprimer la configuration de base de données si existante (pour rétablir H2 par défaut)
+  file:
+    path: /var/opt/jfrog/artifactory/etc/db.properties
+    state: absent
+  when: artifactory_db_properties.exists
+
+- name: Démarrer et activer Artifactory
   systemd:
     name: artifactory
     state: started
-    enabled: yes
+    enabled: true

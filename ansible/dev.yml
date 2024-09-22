@@ -3,7 +3,7 @@
   hosts: dev 
   become: yes
   vars:
-  - java_package: openjdk-8-jdk
+  - java_package: openjdk-21-jdk
   - maven_major_version: 3
   - maven_version: 3.8.6
   tasks:

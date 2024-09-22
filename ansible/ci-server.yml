@@ -24,14 +24,14 @@
     include_tasks: tasks/sonarqube.yml
     tags: 
     - sonarqube
-  - name: install artifactory
-    include_tasks: tasks/artifactory.yml
-    tags:
-    - artifactory
+#  - name: install artifactory
+#    include_tasks: tasks/artifactory.yml
+#    tags:
+#    - artifactory
   
   - block:
     - name: install docker engine
-      include_tasks: tasks/{{ansible-os-family}}-docker.yml
+      include_tasks: tasks/Debian-docker.yml
     - name: add jenkins user to docker group
       user:
         name: jenkins

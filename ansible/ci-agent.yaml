@@ -1,0 +1,25 @@
+---
+- name: provision jenkins 
+  hosts: ci-agent
+  become: yes
+  vars_files:
+  - vars/vars.yml
+ 
+  tasks:
+  - name: install docker engine
+    include_tasks: tasks/Debian-docker.yml
+  - name: Créer un utilisateur Jenkins
+    user:
+      name: jenkins
+      state: present
+      shell: /bin/bash
+      home: /home/jenkins
+      create_home: yes  
+  - name: add jenkins user to docker group
+    user:
+      name: jenkins
+      groups: docker
+      append: yes
+  
+
+  
