@@ -1,0 +1,9 @@
+mysql_databases:
+  - name: petclinic
+    encoding: latin1
+    collation: latin1_general_ci
+mysql_users:
+  - name: petclinic
+    host: "%"
+    password: petclinic
+    priv: "petclinic.*:ALL"

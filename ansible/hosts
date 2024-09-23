@@ -12,5 +12,5 @@ ci-server
 [prod]
 prod-server
 
-[ci-agent]
+[ci_agent]
 ci-agent

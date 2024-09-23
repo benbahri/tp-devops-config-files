@@ -47,13 +47,13 @@ Vagrant.configure("2") do |config|
         subconfig.vm.hostname = "ci-agent"
         subconfig.vm.network "private_network", ip: "192.168.60.21"
         subconfig.vm.provider "virtualbox" do |vb|
-            vb.memory = "1024"
+            vb.memory = "2048"
         end
         subconfig.vm.provision "shell", inline: $script_inject_pubkey
     end
     config.vm.define "staging-server" do |subconfig|
         subconfig.vm.box = "ubuntu/jammy64"
-        subconfig.vm.hostname = "jenkins"
+        subconfig.vm.hostname = "staging"
         subconfig.vm.network "private_network", ip: "192.168.60.31"
         subconfig.vm.synced_folder "ansible", "/home/vagrant/ansible", type: "rsync", rsync__exclude: ".git", mount_options: ["dmode=755", "fmode=644"]
         subconfig.vm.provider "virtualbox" do |vb|
@@ -72,7 +72,7 @@ Vagrant.configure("2") do |config|
     end
     config.vm.define "k8s-master" do |subconfig|
         subconfig.vm.box = "ubuntu/jammy64"
-        subconfig.vm.hostname = "jenkins"
+        subconfig.vm.hostname = "k8s-master"
         subconfig.vm.network "private_network", ip: "192.168.60.100"
         subconfig.vm.synced_folder "ansible", "/home/vagrant/ansible", type: "rsync", rsync__exclude: ".git", mount_options: ["dmode=755", "fmode=644"]
         subconfig.vm.provider "virtualbox" do |vb|
@@ -83,7 +83,7 @@ Vagrant.configure("2") do |config|
     (1..1).each do |i|
         config.vm.define "k8s-node#{i}" do |subconfig|
             subconfig.vm.box = "ubuntu/jammy64"
-            subconfig.vm.hostname = "dev#{i}"
+            subconfig.vm.hostname = "k8s-node#{i}"
             subconfig.vm.network "private_network", ip: "192.168.60.11#{i}"
 
             #provision public key for ansible 

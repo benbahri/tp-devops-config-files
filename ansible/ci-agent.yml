@@ -1,0 +1,52 @@
+---
+- name: provision jenkins 
+  hosts: ci_agent
+  become: yes
+  vars_files:
+  - vars/vars.yml
+ 
+  tasks:
+
+  - name: install utilities
+    package:
+      name:
+      - git
+  - name: Include distribution specific vars file
+    include_vars: vars/{{ansible_os_family}}-vars.yml
+  - name: install java
+    include_tasks: tasks/java-{{ ansible_os_family }}.yml
+  - name: install maven {{maven_major_version}}
+    include_tasks: tasks/maven.yml
+
+  - name: install docker engine
+    include_tasks: tasks/Debian-docker.yml
+  - name: Créer un utilisateur Jenkins
+    user:
+      name: jenkins
+      state: present
+      shell: /bin/bash
+      home: /home/jenkins
+      create_home: yes  
+  - name: add jenkins user to docker group
+    user:
+      name: jenkins
+      groups: docker
+      append: yes
+
+  - name: Créer le répertoire .ssh pour l'utilisateur Jenkins
+    file:
+      path: /home/jenkins/.ssh
+      state: directory
+      owner: jenkins
+      group: jenkins
+      mode: '0700'
+
+  - name: Ajouter la clé publique SSH à authorized_keys de Jenkins
+    authorized_key:
+      user: jenkins
+      state: present
+      key: "{{ lookup('file', 'files/id_rsa.pub') }}"
+      path: /home/jenkins/.ssh/authorized_keys
+      manage_dir: yes
+
+  
